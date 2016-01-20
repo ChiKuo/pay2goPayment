@@ -5,9 +5,10 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Base64;
-import android.view.View;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
@@ -19,12 +20,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
-import java.security.MessageDigest;
-import java.security.spec.AlgorithmParameterSpec;
-
-import javax.crypto.Cipher;
-import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
 
 import chikuo.tw.pay2gopayment.object.pay2go.Payment;
 import chikuo.tw.pay2gopayment.object.pay2go.TradeInfo;
@@ -55,7 +50,7 @@ public class MainActivity extends AppCompatActivity {
         payment.setAmt("100");
         payment.setEmail(" ");
         payment.setItemDesc("小小兵便當");
-        payment.setMerchantOrderNo("10005");
+        payment.setMerchantOrderNo("10006");
 
         // Payment
         Button paymentButton = (Button) findViewById(R.id.payment_button);
@@ -90,14 +85,19 @@ public class MainActivity extends AppCompatActivity {
 
         // TODO
 
+
         byte[] postDataBefore = new byte[0];
         try {
-            postDataBefore = encryptAES("abcdefghijklmnopqrstuvwxyzABCDEF");
+//            postDataBefore = Encrypt.encryptAES("abcdefghijklmnopqrstuvwxyzABCDEF");
+            postDataBefore = Encrypt.encryptAES("RespondType=JSON&Version=1.0&Amt=250&TradeNo=16011912514676001&MerchantOrderNo=10002&IndexType=1&TimeStamp=1400137200");
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
-        String postData = Base64.encodeToString(postDataBefore, Base64.DEFAULT);
-        String postData3 = Base64.encodeToString(postDataBefore, Base64.DEFAULT);
+        //f27a3ade8d0bb22b55b5b8605c77176be62d3ffcec7cc8cd974d7730c22345ae21398b5c65655f4113b975652cabbc53a7af84e63290ad795ed7aa8c08b996e9629467871ffbcf72b88153293d2ea36e49762f9492ac2f7b87d6c0e3f5b9e7eb
+        String postData = Encrypt.bytesToHex(postDataBefore);
+//        String postData2 = Base64.encodeToString(postDataBefore, Base64.DEFAULT);
+        Log.d("","");
+
     }
 
     private void checkTradeInfo() {
@@ -112,7 +112,7 @@ public class MainActivity extends AppCompatActivity {
                 "&MerchantID="+ payment.getMerchantID() +
                 "&MerchantOrderNo="+ payment.getMerchantOrderNo() +
                 "&Key=" + payment.getHashKey() ;
-        String checkValue = sha256(checkValueBefore).toUpperCase();
+        String checkValue = Encrypt.sha256(checkValueBefore).toUpperCase();
 
         Ion.with(MainActivity.this)
                 .load(API.HOST_POST_URL_TRADE_INFO)
@@ -160,11 +160,11 @@ public class MainActivity extends AppCompatActivity {
         String checkValueBefore = "HashKey=" + payment.getHashKey() +
                 "&Amt=" + payment.getAmt() +
                 "&MerchantID="+ payment.getMerchantID() +
-                "&MerchantOrderNo="+ payment.getMerchantOrderNo() +
+                "&MerchantOrderNo=" + payment.getMerchantOrderNo() +
                 "&TimeStamp="+ payment.getTimeStamp() +
                 "&Version="+ payment.getVersion() +
                 "&HashIV=" + payment.getHashIV() ;
-        String checkValue = sha256(checkValueBefore).toUpperCase();
+        String checkValue = Encrypt.sha256(checkValueBefore).toUpperCase();
 
         // Call API
         Ion.with(MainActivity.this)
@@ -219,41 +219,5 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-
-    public static String sha256(String base) {
-        try{
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(base.getBytes("UTF-8"));
-            StringBuffer hexString = new StringBuffer();
-
-            for (int i = 0; i < hash.length; i++) {
-                String hex = Integer.toHexString(0xff & hash[i]);
-                if(hex.length() == 1) hexString.append('0');
-                hexString.append(hex);
-            }
-
-            return hexString.toString();
-        } catch(Exception ex){
-            throw new RuntimeException(ex);
-        }
-    }
-
-    public static byte[] encryptAES(String data) throws UnsupportedEncodingException {
-
-        byte[] ivs = "1234567890123456".getBytes("UTF-8") ;
-        byte[] key = "12345678901234567890123456789012".getBytes("UTF-8");
-
-        try {
-            AlgorithmParameterSpec mAlgorithmParameterSpec = new IvParameterSpec(ivs);
-            SecretKeySpec mSecretKeySpec = new SecretKeySpec(key, "AES");
-            Cipher mCipher = null;
-            mCipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-            mCipher.init(Cipher.ENCRYPT_MODE, mSecretKeySpec, mAlgorithmParameterSpec);
-
-            return mCipher.doFinal(data.getBytes("UTF-8"));
-        } catch (Exception ex) {
-            return null;
-        }
-    }
 
 }
