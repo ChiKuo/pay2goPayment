@@ -20,6 +20,18 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.AlgorithmParameterSpec;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 
 import chikuo.tw.pay2gopayment.object.pay2go.Payment;
 import chikuo.tw.pay2gopayment.object.pay2go.TradeInfo;
@@ -93,10 +105,13 @@ public class MainActivity extends AppCompatActivity {
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
-        //f27a3ade8d0bb22b55b5b8605c77176be62d3ffcec7cc8cd974d7730c22345ae21398b5c65655f4113b975652cabbc53a7af84e63290ad795ed7aa8c08b996e9629467871ffbcf72b88153293d2ea36e49762f9492ac2f7b87d6c0e3f5b9e7eb
+
+        // PKCS5Padding  =  f27a3ade8d0bb22b55b5b8605c77176be62d3ffcec7cc8cd974d7730c22345ae6fc5403e762114f34aaf46a86e6eb72e47a2ee5de66341c6d9ff0eafc023ed87b2c8628b1013c5f95de564b95464fda697ad1a3cf5463a15b5e98a4b1242137449d84f02c6e448e305f30efaa2360b941d923df18c701ea546ba3ce31141aa83ca1ca08734e891992aa96604adcfcac7
+        // PKCS7Padding  =  f27a3ade8d0bb22b55b5b8605c77176be62d3ffcec7cc8cd974d7730c22345ae6fc5403e762114f34aaf46a86e6eb72e47a2ee5de66341c6d9ff0eafc023ed87b2c8628b1013c5f95de564b95464fda697ad1a3cf5463a15b5e98a4b1242137449d84f02c6e448e305f30efaa2360b941d923df18c701ea546ba3ce31141aa83ca1ca08734e891992aa96604adcfcac7
+        // correct       =  f27a3ade8d0bb22b55b5b8605c77176be62d3ffcec7cc8cd974d7730c22345ae21398b5c65655f4113b975652cabbc53a7af84e63290ad795ed7aa8c08b996e9629467871ffbcf72b88153293d2ea36e49762f9492ac2f7b87d6c0e3f5b9e7eb
         String postData = Encrypt.bytesToHex(postDataBefore);
 //        String postData2 = Base64.encodeToString(postDataBefore, Base64.DEFAULT);
-        Log.d("","");
+        Log.d("", "");
 
     }
 
@@ -218,6 +233,8 @@ public class MainActivity extends AppCompatActivity {
 
         return super.onOptionsItemSelected(item);
     }
+
+
 
 
 }
