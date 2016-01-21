@@ -20,6 +20,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
@@ -97,21 +98,27 @@ public class MainActivity extends AppCompatActivity {
 
         // TODO
 
+        String key = "Up5QKRRuOBXAVJ3iofcY5HZhM7bTmJbh";
+        String iv = "9g7U8YoWAmxv6BOu";
+        String postDataBefore = "RespondType=JSON&Version=1.0&Amt=250&MerchantOrderNo=10002&IndexType=1&TimeStamp=1400137200";
 
-        byte[] postDataBefore = new byte[0];
+        Crypto crypto = new Crypto(key, iv);
         try {
-//            postDataBefore = Encrypt.encryptAES("abcdefghijklmnopqrstuvwxyzABCDEF");
-            postDataBefore = Encrypt.encryptAES("RespondType=JSON&Version=1.0&Amt=250&TradeNo=16011912514676001&MerchantOrderNo=10002&IndexType=1&TimeStamp=1400137200");
-        } catch (UnsupportedEncodingException e) {
+            byte[] bytePostData = crypto.encrypt(postDataBefore.getBytes(Charset.forName("UTF-8")));
+            String postData = crypto.bytesToHex((bytePostData)).trim();
+        } catch (InvalidKeyException e) {
+            e.printStackTrace();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (NoSuchPaddingException e) {
+            e.printStackTrace();
+        } catch (IllegalBlockSizeException e) {
+            e.printStackTrace();
+        } catch (BadPaddingException e) {
+            e.printStackTrace();
+        } catch (InvalidAlgorithmParameterException e) {
             e.printStackTrace();
         }
-
-        // PKCS5Padding  =  f27a3ade8d0bb22b55b5b8605c77176be62d3ffcec7cc8cd974d7730c22345ae6fc5403e762114f34aaf46a86e6eb72e47a2ee5de66341c6d9ff0eafc023ed87b2c8628b1013c5f95de564b95464fda697ad1a3cf5463a15b5e98a4b1242137449d84f02c6e448e305f30efaa2360b941d923df18c701ea546ba3ce31141aa83ca1ca08734e891992aa96604adcfcac7
-        // PKCS7Padding  =  f27a3ade8d0bb22b55b5b8605c77176be62d3ffcec7cc8cd974d7730c22345ae6fc5403e762114f34aaf46a86e6eb72e47a2ee5de66341c6d9ff0eafc023ed87b2c8628b1013c5f95de564b95464fda697ad1a3cf5463a15b5e98a4b1242137449d84f02c6e448e305f30efaa2360b941d923df18c701ea546ba3ce31141aa83ca1ca08734e891992aa96604adcfcac7
-        // correct       =  f27a3ade8d0bb22b55b5b8605c77176be62d3ffcec7cc8cd974d7730c22345ae21398b5c65655f4113b975652cabbc53a7af84e63290ad795ed7aa8c08b996e9629467871ffbcf72b88153293d2ea36e49762f9492ac2f7b87d6c0e3f5b9e7eb
-        String postData = Encrypt.bytesToHex(postDataBefore);
-//        String postData2 = Base64.encodeToString(postDataBefore, Base64.DEFAULT);
-        Log.d("", "");
 
     }
 
@@ -127,7 +134,7 @@ public class MainActivity extends AppCompatActivity {
                 "&MerchantID="+ payment.getMerchantID() +
                 "&MerchantOrderNo="+ payment.getMerchantOrderNo() +
                 "&Key=" + payment.getHashKey() ;
-        String checkValue = Encrypt.sha256(checkValueBefore).toUpperCase();
+        String checkValue = Crypto.sha256(checkValueBefore).toUpperCase();
 
         Ion.with(MainActivity.this)
                 .load(API.HOST_POST_URL_TRADE_INFO)
@@ -179,7 +186,7 @@ public class MainActivity extends AppCompatActivity {
                 "&TimeStamp="+ payment.getTimeStamp() +
                 "&Version="+ payment.getVersion() +
                 "&HashIV=" + payment.getHashIV() ;
-        String checkValue = Encrypt.sha256(checkValueBefore).toUpperCase();
+        String checkValue = Crypto.sha256(checkValueBefore).toUpperCase();
 
         // Call API
         Ion.with(MainActivity.this)
