@@ -35,6 +35,20 @@
             android:text="取消訂單授權"
             android:id="@+id/cancel_credit_card_button" />
 
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="請款"
+            android:id="@+id/application_button" />
+
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="退款"
+            android:id="@+id/close_button" />
+
     </LinearLayout>
 
 </RelativeLayout>

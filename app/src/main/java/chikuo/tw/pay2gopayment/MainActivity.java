@@ -4,8 +4,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Base64;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -19,21 +17,16 @@ import com.koushikdutta.ion.Ion;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.security.spec.AlgorithmParameterSpec;
 
 import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
-import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
 
+import chikuo.tw.pay2gopayment.object.pay2go.CancelCredit;
 import chikuo.tw.pay2gopayment.object.pay2go.Payment;
 import chikuo.tw.pay2gopayment.object.pay2go.TradeInfo;
 
@@ -41,6 +34,9 @@ public class MainActivity extends AppCompatActivity {
 
     private String webHtml = "";
     private Payment payment;
+
+    private String hashKey = "Up5QKRRuOBXAVJ3iofcY5HZhM7bTmJbh";
+    private String hashIv = "9g7U8YoWAmxv6BOu";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,13 +53,13 @@ public class MainActivity extends AppCompatActivity {
 
         // Create payment
         payment = new Payment();
-        payment.setHashIV("9g7U8YoWAmxv6BOu");
-        payment.setHashKey("Up5QKRRuOBXAVJ3iofcY5HZhM7bTmJbh");
+        payment.setHashIV(hashIv);
+        payment.setHashKey(hashKey);
         payment.setMerchantID("11375804");
         payment.setAmt("100");
         payment.setEmail(" ");
         payment.setItemDesc("小小兵便當");
-        payment.setMerchantOrderNo("10006");
+        payment.setMerchantOrderNo("10011");
 
         // Payment
         Button paymentButton = (Button) findViewById(R.id.payment_button);
@@ -92,20 +88,52 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        // Application
+        Button applicationCreditCardButton = (Button) findViewById(R.id.application_button);
+        applicationCreditCardButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                applicationCreditCard();
+            }
+        });
+
+        // Close
+        Button closeCreditCardButton = (Button) findViewById(R.id.close_button);
+        closeCreditCardButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                closeCreditCard();
+            }
+        });
+
     }
 
-    private void cancelCreditCard() {
+    private void closeCreditCard() {
 
+
+    }
+
+    private void applicationCreditCard() {
+
+        // Set Version
+        payment.setVersion("1.0");
+        payment.setTimeStamp(String.valueOf(System.currentTimeMillis()));
         // TODO
 
-        String key = "Up5QKRRuOBXAVJ3iofcY5HZhM7bTmJbh";
-        String iv = "9g7U8YoWAmxv6BOu";
-        String postDataBefore = "RespondType=JSON&Version=1.0&Amt=250&MerchantOrderNo=10002&IndexType=1&TimeStamp=1400137200";
+        String postData = null;
+        String postDataBefore = "RespondType=JSON" +
+                "&Version="+ payment.getVersion() +
+                "&Amt=" + payment.getAmt() +
+                "&MerchantOrderNo=" + payment.getMerchantOrderNo() +
+                "&TimeStamp=" + payment.getTimeStamp() +
+                "&IndexType=1" +
+                "&CloseType=1" ;
 
-        Crypto crypto = new Crypto(key, iv);
+        // Encrypt
+        Crypto crypto = new Crypto(hashKey, hashIv);
         try {
             byte[] bytePostData = crypto.encrypt(postDataBefore.getBytes(Charset.forName("UTF-8")));
-            String postData = crypto.bytesToHex((bytePostData)).trim();
+            postData = crypto.bytesToHex((bytePostData)).trim();
         } catch (InvalidKeyException e) {
             e.printStackTrace();
         } catch (NoSuchAlgorithmException e) {
@@ -119,6 +147,102 @@ public class MainActivity extends AppCompatActivity {
         } catch (InvalidAlgorithmParameterException e) {
             e.printStackTrace();
         }
+
+//        Ion.with(MainActivity.this)
+//                .load(API.HOST_POST_URL_CREDIT_CARD_CLOSE)
+//                .setMultipartParameter("MerchantID_", payment.getMerchantID())
+//                .setMultipartParameter("PostData_", postData )
+//                .asString()
+//                .setCallback(new FutureCallback<String>() {
+//                    @Override
+//                    public void onCompleted(Exception e, String result) {
+//
+//                        if (e == null) {
+//
+//                            Gson gson = new Gson();
+//
+//                            try {
+//                                JSONObject jsonArrayResult = new JSONObject(result);
+//                                CancelCredit cancelCredit = gson.fromJson(jsonArrayResult.toString(), CancelCredit.class);
+//
+//                                // Show Result
+//                                if (cancelCredit != null && cancelCredit.getMessage() != null ) {
+//                                    Toast.makeText(MainActivity.this, cancelCredit.getMessage(), Toast.LENGTH_LONG).show();
+//                                }
+//
+//                            } catch (JSONException e1) {
+//                                e1.printStackTrace();
+//                            }
+//                        }
+//
+//                    }
+//                });
+
+    }
+
+    private void cancelCreditCard() {
+
+        // Set Version
+        payment.setVersion("1.0");
+        payment.setTimeStamp(String.valueOf(System.currentTimeMillis()));
+        // TODO
+
+        String postData = null;
+        String postDataBefore = "RespondType=JSON" +
+                            "&Version="+ payment.getVersion() +
+                            "&Amt=" + payment.getAmt() +
+                            "&MerchantOrderNo=" + payment.getMerchantOrderNo() +
+                            "&IndexType=1" +
+                            "&TimeStamp=" + payment.getTimeStamp();
+
+        // Encrypt
+        Crypto crypto = new Crypto(hashKey, hashIv);
+        try {
+            byte[] bytePostData = crypto.encrypt(postDataBefore.getBytes(Charset.forName("UTF-8")));
+            postData = crypto.bytesToHex((bytePostData)).trim();
+        } catch (InvalidKeyException e) {
+            e.printStackTrace();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (NoSuchPaddingException e) {
+            e.printStackTrace();
+        } catch (IllegalBlockSizeException e) {
+            e.printStackTrace();
+        } catch (BadPaddingException e) {
+            e.printStackTrace();
+        } catch (InvalidAlgorithmParameterException e) {
+            e.printStackTrace();
+        }
+
+        Ion.with(MainActivity.this)
+                .load(API.HOST_POST_URL_CREDIT_CARD_CANCEL)
+                .setMultipartParameter("MerchantID_", payment.getMerchantID())
+                .setMultipartParameter("PostData_", postData )
+                .asString()
+                .setCallback(new FutureCallback<String>() {
+                    @Override
+                    public void onCompleted(Exception e, String result) {
+
+                        if (e == null) {
+
+                            Gson gson = new Gson();
+
+                            try {
+                                JSONObject jsonArrayResult = new JSONObject(result);
+                                CancelCredit cancelCredit = gson.fromJson(jsonArrayResult.toString(), CancelCredit.class);
+
+                                // Show Result
+                                if (cancelCredit != null && cancelCredit.getMessage() != null ) {
+                                    Toast.makeText(MainActivity.this, cancelCredit.getMessage(), Toast.LENGTH_LONG).show();
+                                }
+
+                            } catch (JSONException e1) {
+                                e1.printStackTrace();
+                            }
+                        }
+
+                    }
+                });
 
     }
 
@@ -159,8 +283,8 @@ public class MainActivity extends AppCompatActivity {
                                 TradeInfo tradeInfo = gson.fromJson(jsonArrayResult.toString(), TradeInfo.class);
 
                                 // Show Result
-                                if (tradeInfo != null && tradeInfo.getStatus().equals("SUCCESS")) {
-                                    Toast.makeText(MainActivity.this, tradeInfo.getStatus(), Toast.LENGTH_LONG).show();
+                                if (tradeInfo != null && tradeInfo.getMessage()!= null) {
+                                    Toast.makeText(MainActivity.this, tradeInfo.getMessage(), Toast.LENGTH_LONG).show();
                                 }
 
                             } catch (JSONException e1) {
