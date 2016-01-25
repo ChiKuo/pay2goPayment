@@ -5,7 +5,7 @@ import java.util.List;
 /**
  * Created by chikuo on 2016/1/22.
  */
-public class CancelCredit {
+public class CreditActionResult {
 
     private String Status ;
     private String Message ;

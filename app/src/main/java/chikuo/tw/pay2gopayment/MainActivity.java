@@ -26,7 +26,7 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 
-import chikuo.tw.pay2gopayment.object.pay2go.CancelCredit;
+import chikuo.tw.pay2gopayment.object.pay2go.CreditActionResult;
 import chikuo.tw.pay2gopayment.object.pay2go.Payment;
 import chikuo.tw.pay2gopayment.object.pay2go.TradeInfo;
 
@@ -59,7 +59,7 @@ public class MainActivity extends AppCompatActivity {
         payment.setAmt("100");
         payment.setEmail(" ");
         payment.setItemDesc("小小兵便當");
-        payment.setMerchantOrderNo("10011");
+        payment.setMerchantOrderNo("10012");
 
         // Payment
         Button paymentButton = (Button) findViewById(R.id.payment_button);
@@ -111,6 +111,69 @@ public class MainActivity extends AppCompatActivity {
     private void closeCreditCard() {
 
 
+        // Set Version
+        payment.setVersion("1.0");
+        payment.setTimeStamp(String.valueOf(System.currentTimeMillis()));
+
+        String postData = null;
+        String postDataBefore = "RespondType=JSON" +
+                "&Version="+ payment.getVersion() +
+                "&Amt=" + payment.getAmt() +
+                "&MerchantOrderNo=" + payment.getMerchantOrderNo() +
+                "&TimeStamp=" + payment.getTimeStamp() +
+                "&IndexType=1" +
+                "&CloseType=2" ;
+
+        // Encrypt
+        Crypto crypto = new Crypto(hashKey, hashIv);
+        try {
+            byte[] bytePostData = crypto.encrypt(postDataBefore.getBytes(Charset.forName("UTF-8")));
+            postData = crypto.bytesToHex((bytePostData)).trim();
+        } catch (InvalidKeyException e) {
+            e.printStackTrace();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (NoSuchPaddingException e) {
+            e.printStackTrace();
+        } catch (IllegalBlockSizeException e) {
+            e.printStackTrace();
+        } catch (BadPaddingException e) {
+            e.printStackTrace();
+        } catch (InvalidAlgorithmParameterException e) {
+            e.printStackTrace();
+        }
+
+        Ion.with(MainActivity.this)
+                .load(API.HOST_POST_URL_CREDIT_CARD_CLOSE)
+                .setMultipartParameter("MerchantID_", payment.getMerchantID())
+                .setMultipartParameter("PostData_", postData )
+                .asString()
+                .setCallback(new FutureCallback<String>() {
+                    @Override
+                    public void onCompleted(Exception e, String result) {
+
+                        if (e == null) {
+
+                            Gson gson = new Gson();
+
+                            try {
+                                JSONObject jsonArrayResult = new JSONObject(result);
+                                CreditActionResult applicationCredit = gson.fromJson(jsonArrayResult.toString(), CreditActionResult.class);
+
+                                // Show Result
+                                if (applicationCredit != null && applicationCredit.getMessage() != null ) {
+                                    Toast.makeText(MainActivity.this, applicationCredit.getMessage(), Toast.LENGTH_LONG).show();
+                                }
+
+                            } catch (JSONException e1) {
+                                e1.printStackTrace();
+                            }
+                        }
+
+                    }
+                });
+
+
     }
 
     private void applicationCreditCard() {
@@ -118,7 +181,6 @@ public class MainActivity extends AppCompatActivity {
         // Set Version
         payment.setVersion("1.0");
         payment.setTimeStamp(String.valueOf(System.currentTimeMillis()));
-        // TODO
 
         String postData = null;
         String postDataBefore = "RespondType=JSON" +
@@ -148,35 +210,35 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-//        Ion.with(MainActivity.this)
-//                .load(API.HOST_POST_URL_CREDIT_CARD_CLOSE)
-//                .setMultipartParameter("MerchantID_", payment.getMerchantID())
-//                .setMultipartParameter("PostData_", postData )
-//                .asString()
-//                .setCallback(new FutureCallback<String>() {
-//                    @Override
-//                    public void onCompleted(Exception e, String result) {
-//
-//                        if (e == null) {
-//
-//                            Gson gson = new Gson();
-//
-//                            try {
-//                                JSONObject jsonArrayResult = new JSONObject(result);
-//                                CancelCredit cancelCredit = gson.fromJson(jsonArrayResult.toString(), CancelCredit.class);
-//
-//                                // Show Result
-//                                if (cancelCredit != null && cancelCredit.getMessage() != null ) {
-//                                    Toast.makeText(MainActivity.this, cancelCredit.getMessage(), Toast.LENGTH_LONG).show();
-//                                }
-//
-//                            } catch (JSONException e1) {
-//                                e1.printStackTrace();
-//                            }
-//                        }
-//
-//                    }
-//                });
+        Ion.with(MainActivity.this)
+                .load(API.HOST_POST_URL_CREDIT_CARD_CLOSE)
+                .setMultipartParameter("MerchantID_", payment.getMerchantID())
+                .setMultipartParameter("PostData_", postData )
+                .asString()
+                .setCallback(new FutureCallback<String>() {
+                    @Override
+                    public void onCompleted(Exception e, String result) {
+
+                        if (e == null) {
+
+                            Gson gson = new Gson();
+
+                            try {
+                                JSONObject jsonArrayResult = new JSONObject(result);
+                                CreditActionResult applicationCredit = gson.fromJson(jsonArrayResult.toString(), CreditActionResult.class);
+
+                                // Show Result
+                                if (applicationCredit != null && applicationCredit.getMessage() != null ) {
+                                    Toast.makeText(MainActivity.this, applicationCredit.getMessage(), Toast.LENGTH_LONG).show();
+                                }
+
+                            } catch (JSONException e1) {
+                                e1.printStackTrace();
+                            }
+                        }
+
+                    }
+                });
 
     }
 
@@ -229,7 +291,7 @@ public class MainActivity extends AppCompatActivity {
 
                             try {
                                 JSONObject jsonArrayResult = new JSONObject(result);
-                                CancelCredit cancelCredit = gson.fromJson(jsonArrayResult.toString(), CancelCredit.class);
+                                CreditActionResult cancelCredit = gson.fromJson(jsonArrayResult.toString(), CreditActionResult.class);
 
                                 // Show Result
                                 if (cancelCredit != null && cancelCredit.getMessage() != null ) {
