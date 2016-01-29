@@ -21,6 +21,7 @@ import java.nio.charset.Charset;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -59,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
         payment.setAmt("100");
         payment.setEmail(" ");
         payment.setItemDesc("小小兵便當");
-        payment.setMerchantOrderNo("10012");
+        payment.setMerchantOrderNo("10013");
 
         // Payment
         Button paymentButton = (Button) findViewById(R.id.payment_button);
@@ -374,34 +375,55 @@ public class MainActivity extends AppCompatActivity {
                 "&HashIV=" + payment.getHashIV() ;
         String checkValue = Crypto.sha256(checkValueBefore).toUpperCase();
 
-        // Call API
-        Ion.with(MainActivity.this)
-                .load(API.HOST_POST_URL_MPG)
-                .setMultipartParameter("MerchantID", payment.getMerchantID())
-                .setMultipartParameter("RespondType", "String")
-                .setMultipartParameter("CheckValue", checkValue)
-                .setMultipartParameter("TimeStamp", payment.getTimeStamp())
-                .setMultipartParameter("Version", payment.getVersion())
-                .setMultipartParameter("MerchantOrderNo", payment.getMerchantOrderNo())
-                .setMultipartParameter("Amt", payment.getAmt())
-                .setMultipartParameter("ItemDesc", payment.getItemDesc())
-                .setMultipartParameter("Email", payment.getEmail())
-                .setMultipartParameter("LoginType", "0")
-                .setMultipartParameter("CREDIT", "1")
-                .asString()
-                .setCallback(new FutureCallback<String>() {
-                    @Override
-                    public void onCompleted(Exception e, String result) {
+        // Setup post data
+        HashMap<String, Object> data = new HashMap<String, Object>();
+        data.put("HashKey", hashKey);
+        data.put("HashIV", hashIv);
+        data.put("MerchantID", payment.getMerchantID());
+        data.put("ItemDesc",  payment.getItemDesc());
+        data.put("Amt", payment.getAmt());
+        data.put("MerchantOrderNo", payment.getMerchantOrderNo());
+        data.put("TimeStamp", payment.getTimeStamp());
+        data.put("Version", payment.getVersion());
+        data.put("RespondType", "JSON");
+        data.put("Email", "");
+        data.put("LoginType", "0");
+        data.put("CREDIT", 1);
+        data.put("CheckValue", checkValue);
 
-                        if (e == null) {
-                            webHtml = result;
+        String postData = URLBuilder.httpBuildQuery(data, "UTF-8");
+        Intent intent = new Intent(MainActivity.this, WebViewActivity.class);
+        intent.putExtra("postData", postData);
+        startActivity(intent);
 
-                            Intent intent = new Intent(MainActivity.this, WebViewActivity.class);
-                            intent.putExtra("webHtml", webHtml);
-                            startActivity(intent);
-                        }
-                    }
-                });
+//        // Call API
+//        Ion.with(MainActivity.this)
+//                .load(API.HOST_POST_URL_MPG)
+//                .setMultipartParameter("MerchantID", payment.getMerchantID())
+//                .setMultipartParameter("RespondType", "String")
+//                .setMultipartParameter("CheckValue", checkValue)
+//                .setMultipartParameter("TimeStamp", payment.getTimeStamp())
+//                .setMultipartParameter("Version", payment.getVersion())
+//                .setMultipartParameter("MerchantOrderNo", payment.getMerchantOrderNo())
+//                .setMultipartParameter("Amt", payment.getAmt())
+//                .setMultipartParameter("ItemDesc", payment.getItemDesc())
+//                .setMultipartParameter("Email", payment.getEmail())
+//                .setMultipartParameter("LoginType", "0")
+//                .setMultipartParameter("CREDIT", "1")
+//                .asString()
+//                .setCallback(new FutureCallback<String>() {
+//                    @Override
+//                    public void onCompleted(Exception e, String result) {
+//
+//                        if (e == null) {
+//                            webHtml = result;
+//
+//                            Intent intent = new Intent(MainActivity.this, WebViewActivity.class);
+//                            intent.putExtra("webHtml", webHtml);
+//                            startActivity(intent);
+//                        }
+//                    }
+//                });
 
     }
 

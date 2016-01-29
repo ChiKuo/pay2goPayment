@@ -12,6 +12,8 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import org.apache.http.util.EncodingUtils;
+
 /**
  * Created by edward_chiang on 15/5/12.
  */
@@ -63,15 +65,8 @@ public class WebViewActivity extends ActionBarActivity {
             }
         });
 
-        String urlIntent = getIntent().getStringExtra("webUrl");
-        String htmlIntent = getIntent().getStringExtra("webHtml");
-
-        if (urlIntent != null && urlIntent.length() > 0) {
-            webView.loadUrl(Uri.parse(urlIntent).toString());
-        }
-        if (htmlIntent != null && htmlIntent.length() > 0){
-            webView.loadDataWithBaseURL(null, htmlIntent, "text/html", "UTF-8", null);
-        }
+        String postData = getIntent().getStringExtra("postData");
+        webView.postUrl(API.HOST_POST_URL_MPG, EncodingUtils.getBytes(postData, "BASE64"));
     }
 
     @Override
